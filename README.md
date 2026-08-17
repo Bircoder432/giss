@@ -19,6 +19,11 @@ cargo build --release
 ```
 
 The compiled binaries will be located in `target/release/`.
+### via script
+
+```bash
+curl -sL https://raw.githubusercontent.com/bircoder432/giss/master/install.sh | bash
+```
 
 ## Server Setup (Admin)
 
