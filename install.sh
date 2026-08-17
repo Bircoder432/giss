@@ -69,12 +69,18 @@ echo "2) gism (Server Manager)"
 echo "3) gistui (TUI Client)"
 echo "4) All"
 echo ""
-read -p "Enter numbers separated by space (e.g., 1 3): " choices
+
+
+read -p "Enter numbers separated by space (e.g., 1 3): " choices < /dev/tty
+
+if [ -z "$choices" ]; then
+  echo "No selection made. Installing all components by default..."
+  choices="4"
+fi
 
 INSTALL_DIR="/usr/local/bin"
 SUDO=""
 
-# Check if we need sudo
 if [ ! -w "$INSTALL_DIR" ]; then
   SUDO="sudo"
 fi
@@ -93,7 +99,6 @@ for choice in $choices; do
   esac
 done
 
-# Install function
 install_bin() {
   local bin_name=$1
   if [ "$TARGET_OS" == "pc-windows-msvc" ]; then
@@ -114,7 +119,6 @@ if [ "$INSTALL_GISS" = true ]; then install_bin "giss"; fi
 if [ "$INSTALL_GISM" = true ]; then install_bin "gism"; fi
 if [ "$INSTALL_GISTUI" = true ]; then install_bin "gistui"; fi
 
-# Cleanup
 rm -rf "$TEMP_DIR"
 
 echo ""
