@@ -10,7 +10,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
-        .split(f.size());
+        .split(f.area());
 
     let left_style = if app.active_panel == Panel::Left {
         Style::default().fg(Color::Cyan)

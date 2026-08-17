@@ -37,7 +37,6 @@ pub fn spawn_worker(host: String) -> (Sender<Msg>, Receiver<WorkerResult>) {
             match rx_cmd.recv() {
                 Ok(msg) => {
                     let mut current_msg = msg;
-                    // Дебаунс
                     while let Ok(next_msg) = rx_cmd.try_recv() {
                         if matches!(next_msg, Msg::Quit) {
                             return;

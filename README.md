@@ -1,4 +1,4 @@
-# GISS
+# GISS (Git over Security Shell)
 
 A lightweight, self-hosted Git repository manager that operates entirely over SSH. It provides per-user access control, repository namespacing, and a terminal UI for browsing code without cloning. No web server, no database, and no daemons required.
 

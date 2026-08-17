@@ -241,16 +241,16 @@ impl App {
     }
 
     pub fn next(&mut self) {
-        let state = if self.view == View::Files {
-            &mut self.entry_state
-        } else {
-            &mut self.commit_state
-        };
-        let data_len = if self.view == View::Files {
-            self.entries.len()
-        } else {
-            self.commits.len()
-        };
+        if self.current_repo.is_none() {
+            let i = self.repo_state.selected().unwrap_or(0);
+            if i + 1 < self.repos.len() {
+                self.repo_state.select(Some(i + 1));
+            }
+            return;
+        }
+
+        let state = if self.view == View::Files { &mut self.entry_state } else { &mut self.commit_state };
+        let data_len = if self.view == View::Files { self.entries.len() } else { self.commits.len() };
 
         let i = state.selected().unwrap_or(0);
         if i + 1 < data_len {
@@ -260,11 +260,15 @@ impl App {
     }
 
     pub fn previous(&mut self) {
-        let state = if self.view == View::Files {
-            &mut self.entry_state
-        } else {
-            &mut self.commit_state
-        };
+        if self.current_repo.is_none() {
+            let i = self.repo_state.selected().unwrap_or(0);
+            if i > 0 {
+                self.repo_state.select(Some(i - 1));
+            }
+            return;
+        }
+
+        let state = if self.view == View::Files { &mut self.entry_state } else { &mut self.commit_state };
         let i = state.selected().unwrap_or(0);
         if i > 0 {
             state.select(Some(i - 1));

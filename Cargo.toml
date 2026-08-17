@@ -7,6 +7,6 @@ anyhow = "1.0"
 clap = { version = "4.4", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.32", features = ["full"] }
-toml = "0.8"
-which = "5.0"
+toml = "1.1.4"
+which = "8.0.5"
 shared = { path = "crates/shared" }
