@@ -1,0 +1,12 @@
+[workspace]
+members = ["crates/giss", "crates/gism", "crates/shared", "crates/gistui"]
+resolver = "2"
+
+[workspace.dependencies]
+anyhow = "1.0"
+clap = { version = "4.4", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.32", features = ["full"] }
+toml = "0.8"
+which = "5.0"
+shared = { path = "crates/shared" }
