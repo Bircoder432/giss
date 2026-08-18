@@ -1,4 +1,4 @@
-# GISS (Git over Security Shell)
+# GISS (Git over Secure Shell)
 
 A lightweight, self-hosted Git repository manager that operates entirely over SSH. It provides per-user access control, repository namespacing, and a terminal UI for browsing code without cloning. No web server, no database, and no daemons required.
 
@@ -19,11 +19,6 @@ cargo build --release
 ```
 
 The compiled binaries will be located in `target/release/`.
-### via script
-
-```bash
-curl -sL https://raw.githubusercontent.com/bircoder432/giss/master/install.sh | bash
-```
 
 ## Server Setup (Admin)
 
