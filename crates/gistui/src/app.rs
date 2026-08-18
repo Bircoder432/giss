@@ -150,58 +150,59 @@ impl App {
         self.scroll = 0;
         if self.view == View::Files {
             if let Some(idx) = self.entry_state.selected()
-                && let Some(entry) = self.entries.get(idx).cloned() {
-                    match entry.typ {
-                        EntryType::File => {
-                            let full_path = self.get_full_path(&entry);
-                            if let Some(cached) = self.file_cache.get(&full_path).cloned() {
-                                self.file_content = cached;
-                            } else {
-                                self.file_content = vec![Line::from("Loading file...")];
-                                if let Some(repo) = &self.current_repo {
-                                    let _ = self.tx.send(Msg::FetchFile(repo.clone(), full_path));
-                                }
+                && let Some(entry) = self.entries.get(idx).cloned()
+            {
+                match entry.typ {
+                    EntryType::File => {
+                        let full_path = self.get_full_path(&entry);
+                        if let Some(cached) = self.file_cache.get(&full_path).cloned() {
+                            self.file_content = cached;
+                        } else {
+                            self.file_content = vec![Line::from("Loading file...")];
+                            if let Some(repo) = &self.current_repo {
+                                let _ = self.tx.send(Msg::FetchFile(repo.clone(), full_path));
                             }
-                        }
-                        EntryType::Dir => {
-                            let full_path = self.get_full_path(&entry);
-                            if let Some(cached) = self.dir_cache.get(&full_path).cloned() {
-                                let mut lines = Vec::new();
-                                for e in cached {
-                                    let icon = if e.typ == EntryType::Dir { ">" } else { " " };
-                                    lines.push(Line::from(format!("{} {}", icon, e.name)));
-                                }
-                                if lines.is_empty() {
-                                    self.file_content = vec![Line::from("Empty directory")];
-                                } else {
-                                    self.file_content = lines;
-                                }
-                            } else {
-                                self.file_content =
-                                    vec![Line::from("Loading directory preview...")];
-                                if let Some(repo) = &self.current_repo {
-                                    let _ = self.tx.send(Msg::FetchDir(repo.clone(), full_path));
-                                }
-                            }
-                        }
-                        EntryType::UpDir => {
-                            self.file_content = vec![Line::from(".. (Go up to parent directory)")];
                         }
                     }
+                    EntryType::Dir => {
+                        let full_path = self.get_full_path(&entry);
+                        if let Some(cached) = self.dir_cache.get(&full_path).cloned() {
+                            let mut lines = Vec::new();
+                            for e in cached {
+                                let icon = if e.typ == EntryType::Dir { ">" } else { " " };
+                                lines.push(Line::from(format!("{} {}", icon, e.name)));
+                            }
+                            if lines.is_empty() {
+                                self.file_content = vec![Line::from("Empty directory")];
+                            } else {
+                                self.file_content = lines;
+                            }
+                        } else {
+                            self.file_content = vec![Line::from("Loading directory preview...")];
+                            if let Some(repo) = &self.current_repo {
+                                let _ = self.tx.send(Msg::FetchDir(repo.clone(), full_path));
+                            }
+                        }
+                    }
+                    EntryType::UpDir => {
+                        self.file_content = vec![Line::from(".. (Go up to parent directory)")];
+                    }
                 }
+            }
         } else if self.view == View::Commits
             && let Some(idx) = self.commit_state.selected()
-                && let Some(commit) = self.commits.get(idx).cloned() {
-                    let hash = commit.hash.clone();
-                    if let Some(cached) = self.commit_diff_cache.get(&hash).cloned() {
-                        self.file_content = cached;
-                    } else {
-                        self.file_content = vec![Line::from("Loading commit diff...")];
-                        if let Some(repo) = &self.current_repo {
-                            let _ = self.tx.send(Msg::FetchCommitDiff(repo.clone(), hash));
-                        }
-                    }
+            && let Some(commit) = self.commits.get(idx).cloned()
+        {
+            let hash = commit.hash.clone();
+            if let Some(cached) = self.commit_diff_cache.get(&hash).cloned() {
+                self.file_content = cached;
+            } else {
+                self.file_content = vec![Line::from("Loading commit diff...")];
+                if let Some(repo) = &self.current_repo {
+                    let _ = self.tx.send(Msg::FetchCommitDiff(repo.clone(), hash));
                 }
+            }
+        }
     }
 
     pub fn enter(&mut self) {
@@ -210,18 +211,19 @@ impl App {
         }
         if self.view == View::Files
             && let Some(idx) = self.entry_state.selected()
-                && let Some(entry) = self.entries.get(idx).cloned() {
-                    match entry.typ {
-                        EntryType::Dir => {
-                            self.current_path = self.get_full_path(&entry);
-                            self.load_files();
-                        }
-                        EntryType::UpDir => {
-                            self.go_up();
-                        }
-                        EntryType::File => {}
-                    }
+            && let Some(entry) = self.entries.get(idx).cloned()
+        {
+            match entry.typ {
+                EntryType::Dir => {
+                    self.current_path = self.get_full_path(&entry);
+                    self.load_files();
                 }
+                EntryType::UpDir => {
+                    self.go_up();
+                }
+                EntryType::File => {}
+            }
+        }
     }
 
     pub fn go_up(&mut self) {
