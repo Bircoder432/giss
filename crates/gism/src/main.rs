@@ -84,10 +84,10 @@ fn main() -> Result<()> {
                 let dir = keys::keys_dir()?;
                 for entry in std::fs::read_dir(dir)? {
                     let entry = entry?;
-                    if let Some(name) = entry.file_name().to_str() {
-                        if name.ends_with(".pub") {
-                            println!("{}", name.trim_end_matches(".pub"));
-                        }
+                    if let Some(name) = entry.file_name().to_str()
+                        && name.ends_with(".pub")
+                    {
+                        println!("{}", name.trim_end_matches(".pub"));
                     }
                 }
             }
@@ -118,10 +118,10 @@ fn main() -> Result<()> {
                 let dir = format!("{}/repos", home);
                 for entry in std::fs::read_dir(dir)? {
                     let entry = entry?;
-                    if let Some(name) = entry.file_name().to_str() {
-                        if name.ends_with(".git") {
-                            println!("{}", name.trim_end_matches(".git"));
-                        }
+                    if let Some(name) = entry.file_name().to_str()
+                        && name.ends_with(".git")
+                    {
+                        println!("{}", name.trim_end_matches(".git"));
                     }
                 }
             }

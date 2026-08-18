@@ -1,5 +1,5 @@
 use crate::acl::AclFile;
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use std::process::Command;
 
 pub fn run(user: &str) -> Result<()> {
@@ -96,7 +96,7 @@ pub fn run(user: &str) -> Result<()> {
 
         let repo = parts[0].to_string();
         let target_user = parts[1].to_string();
-        let write = parts.iter().any(|&p| p == "--write");
+        let write = parts.contains(&"--write");
 
         let owner_prefix = format!("{}/", user);
         if !repo.starts_with(&owner_prefix) {
@@ -220,7 +220,7 @@ pub fn run(user: &str) -> Result<()> {
     if let Some(args) = original_cmd.strip_prefix("giss-tui-show ") {
         let parts: Vec<&str> = args.splitn(2, ' ').collect();
         let mut repo = parts[0].to_string();
-        let file_path = parts.get(1).map(|s| *s).unwrap_or("");
+        let file_path = parts.get(1).copied().unwrap_or("");
 
         if !repo.contains('/') {
             repo = format!("{}/{}", user, repo);
@@ -269,7 +269,7 @@ pub fn run(user: &str) -> Result<()> {
     if let Some(args) = original_cmd.strip_prefix("giss-tui-commit-show ") {
         let parts: Vec<&str> = args.splitn(2, ' ').collect();
         let mut repo = parts[0].to_string();
-        let hash = parts.get(1).map(|s| *s).unwrap_or("");
+        let hash = parts.get(1).copied().unwrap_or("");
 
         if !repo.contains('/') {
             repo = format!("{}/{}", user, repo);

@@ -1,10 +1,10 @@
 use crate::app::App;
 use crate::git::{EntryType, Panel, View};
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
-use ratatui::Frame;
 
 pub fn ui(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
@@ -23,38 +23,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         Style::default().fg(Color::DarkGray)
     };
 
-    if app.current_repo.is_none() {
-        let items: Vec<ListItem> = app
-            .repos
-            .iter()
-            .map(|r| ListItem::new(Line::from(r.clone())))
-            .collect();
-        let list = List::new(items)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Repositories (Enter/Open)")
-                    .border_style(left_style),
-            )
-            .highlight_style(
-                Style::default()
-                    .fg(Color::Black)
-                    .bg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            );
-        f.render_stateful_widget(list, chunks[0], &mut app.repo_state);
-
-        let para = Paragraph::new("Select a repository on the left to view its files here.")
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Info")
-                    .border_style(right_style),
-            )
-            .wrap(Wrap { trim: true });
-        f.render_widget(para, chunks[1]);
-    } else {
-        let repo_name = app.current_repo.as_ref().unwrap();
+    if let Some(repo_name) = app.current_repo.as_ref() {
         let view_str = if app.view == View::Files {
             "Files"
         } else {
@@ -124,6 +93,36 @@ pub fn ui(f: &mut Frame, app: &mut App) {
             )
             .scroll((app.scroll, 0))
             .wrap(Wrap { trim: false });
+        f.render_widget(para, chunks[1]);
+    } else {
+        let items: Vec<ListItem> = app
+            .repos
+            .iter()
+            .map(|r| ListItem::new(Line::from(r.clone())))
+            .collect();
+        let list = List::new(items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Repositories (Enter/Open)")
+                    .border_style(left_style),
+            )
+            .highlight_style(
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            );
+        f.render_stateful_widget(list, chunks[0], &mut app.repo_state);
+
+        let para = Paragraph::new("Select a repository on the left to view its files here.")
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Info")
+                    .border_style(right_style),
+            )
+            .wrap(Wrap { trim: true });
         f.render_widget(para, chunks[1]);
     }
 }

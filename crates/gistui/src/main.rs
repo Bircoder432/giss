@@ -8,9 +8,9 @@ use app::App;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use ratatui::{backend::CrosstermBackend, Terminal};
+use ratatui::{Terminal, backend::CrosstermBackend};
 use shared::ClientConfig;
 use std::{io::stdout, time::Duration};
 
@@ -36,61 +36,50 @@ fn main() -> Result<()> {
             match res {
                 WorkerResult::File(path, lines) => {
                     app.file_cache.insert(path.clone(), lines.clone());
-                    if app.view == View::Files {
-                        if let Some(idx) = app.entry_state.selected() {
-                            if let Some(entry) = app.entries.get(idx) {
-                                if entry.typ == EntryType::File && app.get_full_path(entry) == path
-                                {
-                                    app.file_content = lines;
-                                }
-                            }
-                        }
+                    if app.view == View::Files
+                        && let Some(idx) = app.entry_state.selected()
+                        && let Some(entry) = app.entries.get(idx)
+                        && entry.typ == EntryType::File
+                        && app.get_full_path(entry) == path
+                    {
+                        app.file_content = lines;
                     }
                 }
                 WorkerResult::Dir(path, entries) => {
                     app.dir_cache.insert(path.clone(), entries.clone());
-                    if app.view == View::Files {
-                        if let Some(idx) = app.entry_state.selected() {
-                            if let Some(entry) = app.entries.get(idx) {
-                                if entry.typ == EntryType::Dir && app.get_full_path(entry) == path {
-                                    let mut lines = Vec::new();
-                                    for e in &entries {
-                                        let icon = if e.typ == EntryType::Dir { ">" } else { " " };
-                                        lines.push(ratatui::text::Line::from(format!(
-                                            "{} {}",
-                                            icon, e.name
-                                        )));
-                                    }
-                                    if lines.is_empty() {
-                                        app.file_content =
-                                            vec![ratatui::text::Line::from("Empty directory")];
-                                    } else {
-                                        app.file_content = lines;
-                                    }
-                                }
-                            }
+                    if app.view == View::Files
+                        && let Some(idx) = app.entry_state.selected()
+                        && let Some(entry) = app.entries.get(idx)
+                        && entry.typ == EntryType::Dir
+                        && app.get_full_path(entry) == path
+                    {
+                        let mut lines = Vec::new();
+                        for e in &entries {
+                            let icon = if e.typ == EntryType::Dir { ">" } else { " " };
+                            lines.push(ratatui::text::Line::from(format!("{} {}", icon, e.name)));
+                        }
+                        if lines.is_empty() {
+                            app.file_content = vec![ratatui::text::Line::from("Empty directory")];
+                        } else {
+                            app.file_content = lines;
                         }
                     }
                 }
                 WorkerResult::Commits(commits) => {
                     app.commits = commits.clone();
-                    if app.view == View::Commits {
-                        if !app.commits.is_empty() {
-                            app.commit_state.select(Some(0));
-                            app.update_preview();
-                        }
+                    if app.view == View::Commits && !app.commits.is_empty() {
+                        app.commit_state.select(Some(0));
+                        app.update_preview();
                     }
                 }
                 WorkerResult::CommitDiff(hash, lines) => {
                     app.commit_diff_cache.insert(hash.clone(), lines.clone());
-                    if app.view == View::Commits {
-                        if let Some(idx) = app.commit_state.selected() {
-                            if let Some(c) = app.commits.get(idx) {
-                                if c.hash == hash {
-                                    app.file_content = lines;
-                                }
-                            }
-                        }
+                    if app.view == View::Commits
+                        && let Some(idx) = app.commit_state.selected()
+                        && let Some(c) = app.commits.get(idx)
+                        && c.hash == hash
+                    {
+                        app.file_content = lines;
                     }
                 }
             }
@@ -98,85 +87,83 @@ fn main() -> Result<()> {
 
         terminal.draw(|f| ui::ui(f, &mut app))?;
 
-        if event::poll(Duration::from_millis(100))? {
-            if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
-                    match key.code {
-                        KeyCode::Char('q') => {
-                            let _ = app.tx.send(Msg::Quit);
-                            break;
-                        }
-                        KeyCode::Tab => {
-                            app.active_panel = match app.active_panel {
-                                Panel::Left => Panel::Right,
-                                Panel::Right => Panel::Left,
-                            };
-                        }
-                        KeyCode::Char('f') => app.switch_view(View::Files),
-                        KeyCode::Char('c') => app.switch_view(View::Commits),
-                        KeyCode::Right | KeyCode::Char('l') => {
-                            if app.active_panel == Panel::Left {
-                                if app.current_repo.is_none() {
-                                    if let Some(idx) = app.repo_state.selected() {
-                                        if let Some(repo) = app.repos.get(idx).cloned() {
-                                            app.open_repo(&repo);
-                                        }
-                                    }
-                                } else {
-                                    app.active_panel = Panel::Right;
-                                }
-                            }
-                        }
-                        KeyCode::Left | KeyCode::Backspace | KeyCode::Char('h') => {
-                            if app.active_panel == Panel::Right {
-                                app.active_panel = Panel::Left;
-                            } else if app.active_panel == Panel::Left && app.current_repo.is_some()
+        if event::poll(Duration::from_millis(100))?
+            && let Event::Key(key) = event::read()?
+            && key.kind == KeyEventKind::Press
+        {
+            match key.code {
+                KeyCode::Char('q') => {
+                    let _ = app.tx.send(Msg::Quit);
+                    break;
+                }
+                KeyCode::Tab => {
+                    app.active_panel = match app.active_panel {
+                        Panel::Left => Panel::Right,
+                        Panel::Right => Panel::Left,
+                    };
+                }
+                KeyCode::Char('f') => app.switch_view(View::Files),
+                KeyCode::Char('c') => app.switch_view(View::Commits),
+                KeyCode::Right | KeyCode::Char('l') => {
+                    if app.active_panel == Panel::Left {
+                        if app.current_repo.is_none() {
+                            if let Some(idx) = app.repo_state.selected()
+                                && let Some(repo) = app.repos.get(idx).cloned()
                             {
-                                if app.current_path.is_empty() {
-                                    app.current_repo = None;
-                                    app.file_content.clear();
-                                    app.entries.clear();
-                                    app.commits.clear();
-                                    app.entry_state.select(None);
-                                } else {
-                                    app.go_up();
-                                }
+                                app.open_repo(&repo);
                             }
+                        } else {
+                            app.active_panel = Panel::Right;
                         }
-                        KeyCode::Down | KeyCode::Char('j') => {
-                            if app.active_panel == Panel::Left {
-                                app.next();
-                            } else {
-                                app.scroll_down();
-                            }
-                        }
-                        KeyCode::Up | KeyCode::Char('k') => {
-                            if app.active_panel == Panel::Left {
-                                app.previous();
-                            } else {
-                                app.scroll_up();
-                            }
-                        }
-                        KeyCode::Enter => {
-                            if app.active_panel == Panel::Left {
-                                if app.current_repo.is_none() {
-                                    if let Some(idx) = app.repo_state.selected() {
-                                        if let Some(repo) = app.repos.get(idx).cloned() {
-                                            app.open_repo(&repo);
-                                        }
-                                    }
-                                } else {
-                                    app.enter();
-                                }
-                            }
-                        }
-                        KeyCode::Esc => {
-                            app.current_repo = None;
-                            app.file_content.clear();
-                        }
-                        _ => {}
                     }
                 }
+                KeyCode::Left | KeyCode::Backspace | KeyCode::Char('h') => {
+                    if app.active_panel == Panel::Right {
+                        app.active_panel = Panel::Left;
+                    } else if app.active_panel == Panel::Left && app.current_repo.is_some() {
+                        if app.current_path.is_empty() {
+                            app.current_repo = None;
+                            app.file_content.clear();
+                            app.entries.clear();
+                            app.commits.clear();
+                            app.entry_state.select(None);
+                        } else {
+                            app.go_up();
+                        }
+                    }
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if app.active_panel == Panel::Left {
+                        app.next();
+                    } else {
+                        app.scroll_down();
+                    }
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if app.active_panel == Panel::Left {
+                        app.previous();
+                    } else {
+                        app.scroll_up();
+                    }
+                }
+                KeyCode::Enter => {
+                    if app.active_panel == Panel::Left {
+                        if app.current_repo.is_none() {
+                            if let Some(idx) = app.repo_state.selected()
+                                && let Some(repo) = app.repos.get(idx).cloned()
+                            {
+                                app.open_repo(&repo);
+                            }
+                        } else {
+                            app.enter();
+                        }
+                    }
+                }
+                KeyCode::Esc => {
+                    app.current_repo = None;
+                    app.file_content.clear();
+                }
+                _ => {}
             }
         }
     }

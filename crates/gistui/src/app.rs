@@ -1,5 +1,5 @@
 use crate::git::{Commit, Entry, EntryType, Lines, Panel, View};
-use crate::worker::{spawn_worker, Msg, WorkerResult};
+use crate::worker::{Msg, WorkerResult, spawn_worker};
 use ratatui::text::Line;
 use shared::ClientConfig;
 use std::collections::HashMap;
@@ -149,8 +149,8 @@ impl App {
     pub fn update_preview(&mut self) {
         self.scroll = 0;
         if self.view == View::Files {
-            if let Some(idx) = self.entry_state.selected() {
-                if let Some(entry) = self.entries.get(idx).cloned() {
+            if let Some(idx) = self.entry_state.selected()
+                && let Some(entry) = self.entries.get(idx).cloned() {
                     match entry.typ {
                         EntryType::File => {
                             let full_path = self.get_full_path(&entry);
@@ -189,10 +189,9 @@ impl App {
                         }
                     }
                 }
-            }
-        } else if self.view == View::Commits {
-            if let Some(idx) = self.commit_state.selected() {
-                if let Some(commit) = self.commits.get(idx).cloned() {
+        } else if self.view == View::Commits
+            && let Some(idx) = self.commit_state.selected()
+                && let Some(commit) = self.commits.get(idx).cloned() {
                     let hash = commit.hash.clone();
                     if let Some(cached) = self.commit_diff_cache.get(&hash).cloned() {
                         self.file_content = cached;
@@ -203,17 +202,15 @@ impl App {
                         }
                     }
                 }
-            }
-        }
     }
 
     pub fn enter(&mut self) {
         if self.active_panel == Panel::Right {
             return;
         }
-        if self.view == View::Files {
-            if let Some(idx) = self.entry_state.selected() {
-                if let Some(entry) = self.entries.get(idx).cloned() {
+        if self.view == View::Files
+            && let Some(idx) = self.entry_state.selected()
+                && let Some(entry) = self.entries.get(idx).cloned() {
                     match entry.typ {
                         EntryType::Dir => {
                             self.current_path = self.get_full_path(&entry);
@@ -225,8 +222,6 @@ impl App {
                         EntryType::File => {}
                     }
                 }
-            }
-        }
     }
 
     pub fn go_up(&mut self) {
@@ -249,8 +244,16 @@ impl App {
             return;
         }
 
-        let state = if self.view == View::Files { &mut self.entry_state } else { &mut self.commit_state };
-        let data_len = if self.view == View::Files { self.entries.len() } else { self.commits.len() };
+        let state = if self.view == View::Files {
+            &mut self.entry_state
+        } else {
+            &mut self.commit_state
+        };
+        let data_len = if self.view == View::Files {
+            self.entries.len()
+        } else {
+            self.commits.len()
+        };
 
         let i = state.selected().unwrap_or(0);
         if i + 1 < data_len {
@@ -268,7 +271,11 @@ impl App {
             return;
         }
 
-        let state = if self.view == View::Files { &mut self.entry_state } else { &mut self.commit_state };
+        let state = if self.view == View::Files {
+            &mut self.entry_state
+        } else {
+            &mut self.commit_state
+        };
         let i = state.selected().unwrap_or(0);
         if i > 0 {
             state.select(Some(i - 1));

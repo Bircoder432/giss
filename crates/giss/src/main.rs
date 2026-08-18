@@ -121,10 +121,9 @@ async fn main() -> Result<()> {
 }
 
 fn expand_tilde(path: &str) -> String {
-    if path.starts_with("~/") {
-        if let Some(home) = std::env::var_os("HOME") {
+    if path.starts_with("~/")
+        && let Some(home) = std::env::var_os("HOME") {
             return format!("{}/{}", home.to_string_lossy(), &path[2..]);
         }
-    }
     path.to_string()
 }
