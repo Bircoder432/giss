@@ -83,3 +83,40 @@ impl AclFile {
             .unwrap_or(false)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn mock_acl() -> AclFile {
+        let mut acl = AclFile::default();
+        acl.grant("alice/repo", "bob", false);
+        acl.grant("alice/repo", "charlie", true);
+        acl
+    }
+
+    #[test]
+    fn test_grant_and_check() {
+        let acl = mock_acl();
+        assert!(acl.check("alice/repo", "bob", false));
+        assert!(!acl.check("alice/repo", "bob", true));
+
+        assert!(acl.check("alice/repo", "charlie", true));
+        assert!(acl.check("alice/repo", "charlie", false));
+    }
+
+    #[test]
+    fn test_revoke() {
+        let mut acl = mock_acl();
+        acl.revoke("alice/repo", "bob");
+        assert!(!acl.check("alice/repo", "bob", false));
+        assert!(!acl.check("alice/repo", "bob", true));
+    }
+
+    #[test]
+    fn test_non_existent_repo() {
+        let acl = mock_acl();
+        assert!(!acl.check("alice/secret", "bob", false));
+        assert!(!acl.check("alice/secret", "bob", true));
+    }
+}
